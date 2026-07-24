@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "R2zuk6kClno=",
+  "dgSpecHash": "fVFvbc5zJ8U=",
   "success": true,
   "projectFilePath": "D:\\Shuvo\\project Idea\\Babu Project\\calling_translate\\core_api\\VoiceTranslator.Domain\\VoiceTranslator.Domain.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\NASA\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.28\\microsoft.netcore.app.ref.8.0.28.nupkg.sha512",
-    "C:\\Users\\NASA\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.28\\microsoft.windowsdesktop.app.ref.8.0.28.nupkg.sha512",
-    "C:\\Users\\NASA\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.28\\microsoft.aspnetcore.app.ref.8.0.28.nupkg.sha512"
+    "C:\\Users\\NASA\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.29\\microsoft.netcore.app.ref.8.0.29.nupkg.sha512",
+    "C:\\Users\\NASA\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.29\\microsoft.windowsdesktop.app.ref.8.0.29.nupkg.sha512",
+    "C:\\Users\\NASA\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.29\\microsoft.aspnetcore.app.ref.8.0.29.nupkg.sha512"
   ],
   "logs": []
 }

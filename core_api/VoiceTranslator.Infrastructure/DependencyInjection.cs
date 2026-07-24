@@ -18,10 +18,14 @@ public static class DependencyInjection
         services.AddScoped<DatabaseInitializer>();
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
-        var aiProvider = configuration["AiServices:Provider"] ?? "OpenAI";
+        services.AddScoped<OpenAiSpeechToTextService>();
+        services.AddScoped<OpenAiTranslationService>();
+        services.AddScoped<OpenAiTextToSpeechService>();
+        services.AddScoped<MyMemoryTranslationService>();
+
         var openApiKey = configuration["AiServices:OpenApiKey"];
 
-        if (string.Equals(aiProvider, "OpenAI", StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(openApiKey))
+        if (!string.IsNullOrWhiteSpace(openApiKey))
         {
             services.AddScoped<ISpeechToTextService, OpenAiSpeechToTextService>();
             services.AddScoped<ITranslationService, OpenAiTranslationService>();
@@ -29,9 +33,9 @@ public static class DependencyInjection
         }
         else
         {
-            services.AddScoped<ISpeechToTextService, MockSpeechToTextService>();
-            services.AddScoped<ITranslationService, MockTranslationService>();
-            services.AddScoped<ITextToSpeechService, MockTextToSpeechService>();
+            services.AddScoped<ISpeechToTextService, OpenAiSpeechToTextService>();
+            services.AddScoped<ITranslationService, MyMemoryTranslationService>();
+            services.AddScoped<ITextToSpeechService, OpenAiTextToSpeechService>();
         }
 
         services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();

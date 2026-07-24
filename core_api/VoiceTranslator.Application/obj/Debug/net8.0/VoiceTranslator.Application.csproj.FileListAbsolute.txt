@@ -22,3 +22,4 @@ D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\.verify-build\Voic
 D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\artifacts\chat-build\VoiceTranslator.Application.deps.json
 D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\artifacts\chat-build\VoiceTranslator.Application.dll
 D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\artifacts\chat-build\VoiceTranslator.Application.pdb
+D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\VoiceTranslator.Application\obj\Debug\net8.0\VoiceTranslator.Application.sourcelink.json

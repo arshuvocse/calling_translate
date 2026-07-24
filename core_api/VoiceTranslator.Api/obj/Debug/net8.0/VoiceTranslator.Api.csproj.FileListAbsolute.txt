@@ -175,3 +175,4 @@ D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\artifacts\chat-bui
 D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\artifacts\chat-build\VoiceTranslator.Api.runtimeconfig.json
 D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\artifacts\chat-build\VoiceTranslator.Api.dll
 D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\artifacts\chat-build\VoiceTranslator.Api.pdb
+D:\Shuvo\project Idea\Babu Project\calling_translate\core_api\VoiceTranslator.Api\obj\Debug\net8.0\VoiceTranslator.Api.sourcelink.json

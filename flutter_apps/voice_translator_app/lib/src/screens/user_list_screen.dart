@@ -11,6 +11,8 @@ import '../models.dart';
 import 'call_screen.dart';
 import 'chat_screen.dart';
 
+import '../widgets/region_language_selector_dialog.dart';
+
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
 
@@ -47,13 +49,34 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    final currentUserId = state.currentUser!.userId;
+    final currentUser = state.currentUser;
+    final currentUserId = currentUser?.userId;
     final contacts = state.users.where((x) => x.id != currentUserId).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Users'),
+        title: const Text('Profile & Settings'),
         actions: [
+          IconButton(
+            onPressed: () {
+              if (currentUser == null) return;
+              showDialog(
+                context: context,
+                builder: (context) => RegionLanguageSelectorDialog(
+                  currentSourceLang: currentUser.preferredSourceLanguage,
+                  currentTargetLang: currentUser.preferredTargetLanguage,
+                  onSave: (source, target) {
+                    state.updateLanguagesAndRegion(source, target);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Region updated: $source -> $target')),
+                    );
+                  },
+                ),
+              );
+            },
+            icon: const Icon(Icons.language),
+            tooltip: 'Region & Language',
+          ),
           IconButton(
             onPressed: () => state.loadUsers(),
             icon: const Icon(Icons.refresh),

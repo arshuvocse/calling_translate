@@ -69,6 +69,20 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateLanguagesAndRegion(String sourceLanguage, String targetLanguage) async {
+    if (currentUser == null) return;
+    currentUser = AuthUser(
+      userId: currentUser!.userId,
+      displayName: currentUser!.displayName,
+      email: currentUser!.email,
+      token: currentUser!.token,
+      preferredSourceLanguage: sourceLanguage,
+      preferredTargetLanguage: targetLanguage,
+    );
+    await _saveSession(currentUser!);
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     await _clearSavedSession();
     currentUser = null;

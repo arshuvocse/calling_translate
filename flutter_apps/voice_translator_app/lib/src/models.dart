@@ -17,8 +17,8 @@ class AppUser {
     id: json['id'],
     displayName: json['displayName'],
     email: json['email'],
-    preferredSourceLanguage: json['preferredSourceLanguage'] ?? 'bn',
-    preferredTargetLanguage: json['preferredTargetLanguage'] ?? 'en',
+    preferredSourceLanguage: json['preferredSourceLanguage'] ?? 'bn-BD',
+    preferredTargetLanguage: json['preferredTargetLanguage'] ?? 'en-US',
   );
 }
 
@@ -28,18 +28,24 @@ class AuthUser {
     required this.displayName,
     required this.email,
     required this.token,
+    this.preferredSourceLanguage = 'bn-BD',
+    this.preferredTargetLanguage = 'en-US',
   });
 
   final String userId;
   final String displayName;
   final String email;
   final String token;
+  final String preferredSourceLanguage;
+  final String preferredTargetLanguage;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
     userId: json['userId'],
     displayName: json['displayName'],
     email: json['email'],
     token: json['token'],
+    preferredSourceLanguage: json['preferredSourceLanguage'] ?? 'bn-BD',
+    preferredTargetLanguage: json['preferredTargetLanguage'] ?? 'en-US',
   );
 
   Map<String, dynamic> toJson() => {
@@ -47,6 +53,8 @@ class AuthUser {
     'displayName': displayName,
     'email': email,
     'token': token,
+    'preferredSourceLanguage': preferredSourceLanguage,
+    'preferredTargetLanguage': preferredTargetLanguage,
   };
 }
 

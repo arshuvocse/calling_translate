@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 namespace VoiceTranslator.Infrastructure.Persistence;
@@ -8,6 +10,12 @@ public sealed class DatabaseInitializer(ApplicationDbContext dbContext, ILogger<
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Initializing translation database objects.");
+
+        var databaseCreator = dbContext.Database.GetService<IRelationalDatabaseCreator>();
+        if (!await databaseCreator.ExistsAsync(cancellationToken))
+        {
+            await databaseCreator.CreateAsync(cancellationToken);
+        }
 
         await dbContext.Database.ExecuteSqlRawAsync("""
 IF OBJECT_ID('dbo.tbltrans_Users', 'U') IS NULL

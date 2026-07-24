@@ -5,7 +5,17 @@ Separated layout:
 - `core_api/` - ASP.NET Core 8 Web API backend
 - `flutter_apps/voice_translator_app/` - Flutter mobile app
 
-## Backend Setup
+## Quick Start with Docker
+
+Run the Web API and SQL Server 2022 locally in containers:
+
+```powershell
+docker compose up -d --build
+```
+
+The Web API will be accessible at `http://localhost:7068` (Swagger at `http://localhost:7068/swagger`).
+
+## Backend Setup (Manual / Local .NET)
 
 ```powershell
 cd core_api

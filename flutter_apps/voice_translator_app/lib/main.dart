@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'src/app_state.dart';
 import 'src/screens/auth_screen.dart';
-import 'src/screens/user_list_screen.dart';
+import 'src/screens/main_shell_screen.dart';
+import 'src/theme/app_theme.dart';
 
 void main() {
   runApp(
@@ -20,18 +21,22 @@ class VoiceTranslatorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AI Voice Translator',
+      title: 'CONNECT - One Universe',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0F766E)),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       home: Consumer<AppState>(
         builder: (_, state, __) {
           if (!state.initialized) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(
+              backgroundColor: AppTheme.cosmicBackground,
+              body: Center(
+                child: CircularProgressIndicator(color: AppTheme.cosmicAccentPurple),
+              ),
+            );
           }
-          return state.isAuthenticated ? const UserListScreen() : const AuthScreen();
+          return state.isAuthenticated ? const MainShellScreen() : const AuthScreen();
         },
       ),
     );

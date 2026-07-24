@@ -61,8 +61,8 @@ class _CallScreenState extends State<CallScreen> {
   MediaStream? remoteStream;
   StreamSubscription<Uint8List>? audioSubscription;
 
-  var sourceLanguage = 'bn';
-  var targetLanguage = 'en';
+  var sourceLanguage = 'bn-BD';
+  var targetLanguage = 'en-US';
   var status = 'ready';
   var translatedText = '';
   String? callSessionId;
@@ -729,10 +729,15 @@ class _LanguagePicker extends StatelessWidget {
         border: const OutlineInputBorder(),
       ),
       items: const [
-        DropdownMenuItem(value: 'bn', child: Text('Bangla')),
-        DropdownMenuItem(value: 'en', child: Text('English')),
-        DropdownMenuItem(value: 'hi', child: Text('Hindi')),
-        DropdownMenuItem(value: 'ar', child: Text('Arabic')),
+        DropdownMenuItem(value: 'bn-BD', child: Text('🇧🇩 Bangla (BD)')),
+        DropdownMenuItem(value: 'en-US', child: Text('🇺🇸 English (US)')),
+        DropdownMenuItem(value: 'en-GB', child: Text('🇬🇧 English (UK)')),
+        DropdownMenuItem(value: 'ar-SA', child: Text('🇸🇦 Arabic (SA)')),
+        DropdownMenuItem(value: 'es-ES', child: Text('🇪🇸 Spanish (ES)')),
+        DropdownMenuItem(value: 'fr-FR', child: Text('🇫🇷 French (FR)')),
+        DropdownMenuItem(value: 'de-DE', child: Text('🇩🇪 German (DE)')),
+        DropdownMenuItem(value: 'ja-JP', child: Text('🇯🇵 Japanese (JP)')),
+        DropdownMenuItem(value: 'hi-IN', child: Text('🇮🇳 Hindi (IN)')),
       ],
       onChanged: (value) {
         if (value != null) onChanged?.call(value);

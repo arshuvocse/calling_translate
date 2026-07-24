@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../app_state.dart';
 import '../theme/app_theme.dart';
 
 class SpaceDetailsScreen extends StatelessWidget {
@@ -8,6 +11,9 @@ class SpaceDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final totalMembers = appState.users.isNotEmpty ? appState.users.length : 28;
+
     return Scaffold(
       backgroundColor: AppTheme.signalBackground,
       appBar: AppBar(
@@ -51,7 +57,7 @@ class SpaceDetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 10,
                     ),
                   ],
@@ -66,7 +72,7 @@ class SpaceDetailsScreen extends StatelessWidget {
                         gradient: AppTheme.purpleGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.cosmicAccentPurple.withOpacity(0.4),
+                            color: AppTheme.cosmicAccentPurple.withValues(alpha: 0.4),
                             blurRadius: 16,
                           ),
                         ],
@@ -74,17 +80,17 @@ class SpaceDetailsScreen extends StatelessWidget {
                       child: const Icon(Icons.hub, color: Colors.white, size: 32),
                     ),
                     const SizedBox(height: 12),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _MemberAvatar(color: Colors.pinkAccent),
-                        _MemberAvatar(color: Colors.purpleAccent),
-                        _MemberAvatar(color: Colors.blueAccent),
-                        _MemberAvatar(color: Colors.tealAccent),
-                        SizedBox(width: 8),
+                        const _MemberAvatar(color: Colors.pinkAccent),
+                        const _MemberAvatar(color: Colors.purpleAccent),
+                        const _MemberAvatar(color: Colors.blueAccent),
+                        const _MemberAvatar(color: Colors.tealAccent),
+                        const SizedBox(width: 8),
                         Text(
-                          '28 Members • 6 Online',
-                          style: TextStyle(color: AppTheme.signalTextSecondary, fontSize: 12, fontWeight: FontWeight.bold),
+                          '$totalMembers Members • Live Online',
+                          style: const TextStyle(color: AppTheme.signalTextSecondary, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -189,7 +195,7 @@ class SpaceDetailsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 22),
@@ -244,7 +250,7 @@ class SpaceDetailsScreen extends StatelessWidget {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
         child: Icon(icon, color: color, size: 20),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),

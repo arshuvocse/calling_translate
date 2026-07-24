@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../app_state.dart';
 import '../theme/app_theme.dart';
 
 class VideoRoomScreen extends StatefulWidget {
@@ -14,20 +17,23 @@ class _VideoRoomScreenState extends State<VideoRoomScreen> {
   bool _isCameraOn = true;
   bool _isMuted = false;
 
-  final List<Map<String, dynamic>> _participants = const [
-    {'name': 'Babu', 'color': Colors.indigo},
-    {'name': 'Nusrat', 'color': Colors.pinkAccent},
-    {'name': 'Rasel', 'color': Colors.teal},
-    {'name': 'Mim', 'color': Colors.orangeAccent},
-    {'name': 'Ariyan', 'color': Colors.purpleAccent},
-    {'name': 'Jannat', 'color': Colors.deepPurple},
-    {'name': 'Sabbir', 'color': Colors.blueAccent},
-    {'name': 'Nadia', 'color': Colors.amberAccent},
-    {'name': '+4', 'color': Colors.grey},
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final currentUserName = appState.currentUser?.displayName ?? 'Me';
+
+    final List<Map<String, dynamic>> participants = [
+      {'name': '$currentUserName (Me)', 'color': Colors.indigo},
+      {'name': 'Nusrat', 'color': Colors.pinkAccent},
+      {'name': 'Rasel', 'color': Colors.teal},
+      {'name': 'Mim', 'color': Colors.orangeAccent},
+      {'name': 'Ariyan', 'color': Colors.purpleAccent},
+      {'name': 'Jannat', 'color': Colors.deepPurple},
+      {'name': 'Sabbir', 'color': Colors.blueAccent},
+      {'name': 'Nadia', 'color': Colors.amberAccent},
+      {'name': '+4', 'color': Colors.grey},
+    ];
+
     return Scaffold(
       backgroundColor: AppTheme.cosmicBackground,
       appBar: AppBar(
@@ -39,9 +45,9 @@ class _VideoRoomScreenState extends State<VideoRoomScreen> {
         ),
         title: Column(
           children: [
-            Text(
+            const Text(
               'Video Room',
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
               widget.roomName,
@@ -88,9 +94,9 @@ class _VideoRoomScreenState extends State<VideoRoomScreen> {
                     mainAxisSpacing: 8,
                     childAspectRatio: 0.85,
                   ),
-                  itemCount: _participants.length,
+                  itemCount: participants.length,
                   itemBuilder: (context, index) {
-                    final item = _participants[index];
+                    final item = participants[index];
                     return _buildVideoTile(item);
                   },
                 ),
@@ -131,7 +137,7 @@ class _VideoRoomScreenState extends State<VideoRoomScreen> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.liveRed.withOpacity(0.5),
+                            color: AppTheme.liveRed.withValues(alpha: 0.5),
                             blurRadius: 10,
                           ),
                         ],
@@ -167,9 +173,12 @@ class _VideoRoomScreenState extends State<VideoRoomScreen> {
   }
 
   Widget _buildVideoTile(Map<String, dynamic> item) {
+    final color = item['color'] as Color;
+    final name = item['name'] as String;
+
     return Container(
       decoration: BoxDecoration(
-        color: item['color'].withOpacity(0.3),
+        color: color.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.cosmicCardBorder),
       ),
@@ -178,9 +187,9 @@ class _VideoRoomScreenState extends State<VideoRoomScreen> {
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: item['color'],
+            backgroundColor: color,
             child: Text(
-              item['name'][0],
+              name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ),
@@ -194,7 +203,7 @@ class _VideoRoomScreenState extends State<VideoRoomScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                item['name'],
+                name,
                 style: const TextStyle(color: Colors.white, fontSize: 10),
               ),
             ),

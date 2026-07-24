@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../app_state.dart';
 import '../theme/app_theme.dart';
 
 class VoiceRoomScreen extends StatefulWidget {
@@ -15,17 +18,20 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> {
   bool _isSpeaker = true;
   bool _handRaised = false;
 
-  final List<Map<String, dynamic>> _participants = const [
-    {'name': 'Babu', 'role': 'Host', 'isSpeaking': true, 'color': Colors.purpleAccent},
-    {'name': 'Nusrat', 'role': '', 'isSpeaking': false, 'color': Colors.pinkAccent},
-    {'name': 'Rasel', 'role': '', 'isSpeaking': true, 'color': Colors.tealAccent},
-    {'name': 'Ariyan', 'role': '', 'isSpeaking': false, 'color': Colors.blueAccent},
-    {'name': 'Nadia', 'role': '', 'isSpeaking': false, 'color': Colors.amberAccent},
-    {'name': '+3', 'role': '', 'isSpeaking': false, 'color': Colors.grey},
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final currentUserName = appState.currentUser?.displayName ?? 'Host';
+
+    final List<Map<String, dynamic>> participants = [
+      {'name': currentUserName, 'role': 'Host', 'isSpeaking': true, 'color': Colors.purpleAccent},
+      {'name': 'Nusrat', 'role': '', 'isSpeaking': false, 'color': Colors.pinkAccent},
+      {'name': 'Rasel', 'role': '', 'isSpeaking': true, 'color': Colors.tealAccent},
+      {'name': 'Ariyan', 'role': '', 'isSpeaking': false, 'color': Colors.blueAccent},
+      {'name': 'Nadia', 'role': '', 'isSpeaking': false, 'color': Colors.amberAccent},
+      {'name': '+3', 'role': '', 'isSpeaking': false, 'color': Colors.grey},
+    ];
+
     return Scaffold(
       backgroundColor: AppTheme.cosmicBackground,
       appBar: AppBar(
@@ -37,9 +43,9 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> {
         ),
         title: Column(
           children: [
-            Text(
+            const Text(
               'Voice Room',
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
               widget.roomName,
@@ -103,10 +109,10 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> {
                     height: 90,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppTheme.onlineGreen.withOpacity(0.2),
+                      color: AppTheme.onlineGreen.withValues(alpha: 0.2),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.onlineGreen.withOpacity(0.5),
+                          color: AppTheme.onlineGreen.withValues(alpha: 0.5),
                           blurRadius: 30,
                           spreadRadius: 8,
                         ),
@@ -116,12 +122,12 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> {
                   ),
 
                   // Speaker Nodes in Radial Orbit
-                  Positioned(top: 10, left: 130, child: _buildSpeakerNode(_participants[0])),
-                  Positioned(top: 60, right: 30, child: _buildSpeakerNode(_participants[1])),
-                  Positioned(bottom: 70, right: 30, child: _buildSpeakerNode(_participants[2])),
-                  Positioned(bottom: 10, left: 130, child: _buildSpeakerNode(_participants[3])),
-                  Positioned(bottom: 70, left: 30, child: _buildSpeakerNode(_participants[4])),
-                  Positioned(top: 60, left: 30, child: _buildSpeakerNode(_participants[5])),
+                  Positioned(top: 10, left: 130, child: _buildSpeakerNode(participants[0])),
+                  Positioned(top: 60, right: 30, child: _buildSpeakerNode(participants[1])),
+                  Positioned(bottom: 70, right: 30, child: _buildSpeakerNode(participants[2])),
+                  Positioned(bottom: 10, left: 130, child: _buildSpeakerNode(participants[3])),
+                  Positioned(bottom: 70, left: 30, child: _buildSpeakerNode(participants[4])),
+                  Positioned(top: 60, left: 30, child: _buildSpeakerNode(participants[5])),
                 ],
               ),
             ),
@@ -222,7 +228,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppTheme.onlineGreen, width: 2.5),
                   boxShadow: [
-                    BoxShadow(color: AppTheme.onlineGreen.withOpacity(0.5), blurRadius: 12),
+                    BoxShadow(color: AppTheme.onlineGreen.withValues(alpha: 0.5), blurRadius: 12),
                   ],
                 ),
               ),
@@ -230,7 +236,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen> {
               radius: 22,
               backgroundColor: color,
               child: Text(
-                speaker['name'][0],
+                speaker['name'].isNotEmpty ? speaker['name'][0].toUpperCase() : '?',
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),

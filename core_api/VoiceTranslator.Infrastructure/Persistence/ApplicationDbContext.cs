@@ -1,0 +1,75 @@
+using Microsoft.EntityFrameworkCore;
+using VoiceTranslator.Application.Abstractions;
+using VoiceTranslator.Domain.Entities;
+
+namespace VoiceTranslator.Infrastructure.Persistence;
+
+public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : DbContext(options), IApplicationDbContext
+{
+    public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<CallSession> CallSessions => Set<CallSession>();
+    public DbSet<CallParticipant> CallParticipants => Set<CallParticipant>();
+    public DbSet<TranslationLog> TranslationLogs => Set<TranslationLog>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AppUser>(entity =>
+        {
+            entity.ToTable("tbltrans_Users");
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.Email).IsUnique();
+            entity.Property(x => x.DisplayName).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.Email).HasMaxLength(180).IsRequired();
+            entity.Property(x => x.PasswordHash).HasMaxLength(500).IsRequired();
+            entity.Property(x => x.PreferredSourceLanguage).HasMaxLength(12).IsRequired();
+            entity.Property(x => x.PreferredTargetLanguage).HasMaxLength(12).IsRequired();
+        });
+
+        modelBuilder.Entity<CallSession>(entity =>
+        {
+            entity.ToTable("tbltrans_CallSessions");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        });
+
+        modelBuilder.Entity<CallParticipant>(entity =>
+        {
+            entity.ToTable("tbltrans_CallParticipants");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.SourceLanguage).HasMaxLength(12).IsRequired();
+            entity.Property(x => x.TargetLanguage).HasMaxLength(12).IsRequired();
+            entity.HasOne(x => x.CallSession).WithMany(x => x.Participants).HasForeignKey(x => x.CallSessionId);
+            entity.HasOne(x => x.User).WithMany(x => x.CallParticipants).HasForeignKey(x => x.UserId);
+        });
+
+        modelBuilder.Entity<TranslationLog>(entity =>
+        {
+            entity.ToTable("tbltrans_TranslationLogs");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.SourceLanguage).HasMaxLength(12).IsRequired();
+            entity.Property(x => x.TargetLanguage).HasMaxLength(12).IsRequired();
+            entity.Property(x => x.SourceText).HasMaxLength(4000).IsRequired();
+            entity.Property(x => x.TranslatedText).HasMaxLength(4000).IsRequired();
+            entity.HasOne(x => x.CallSession).WithMany(x => x.TranslationLogs).HasForeignKey(x => x.CallSessionId);
+        });
+
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.ToTable("tbltrans_ChatMessages");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Message).HasMaxLength(4000).IsRequired();
+            entity.HasIndex(x => new { x.SenderUserId, x.RecipientUserId, x.CreatedAt });
+            entity.HasIndex(x => new { x.RecipientUserId, x.SenderUserId, x.CreatedAt });
+            entity.HasOne(x => x.SenderUser)
+                .WithMany(x => x.SentChatMessages)
+                .HasForeignKey(x => x.SenderUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.RecipientUser)
+                .WithMany(x => x.ReceivedChatMessages)
+                .HasForeignKey(x => x.RecipientUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+}

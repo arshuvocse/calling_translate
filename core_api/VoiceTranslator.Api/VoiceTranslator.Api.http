@@ -1,0 +1,6 @@
+@VoiceTranslator.Api_HostAddress = http://localhost:5098
+
+GET {{VoiceTranslator.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

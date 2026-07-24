@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VoiceTranslator.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+51a39b64834f7d9410013af0edcf25d9c823c8b7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bd9aa2a3f507f740ca124a4b952cc3a1bca8e9cf")]
 [assembly: System.Reflection.AssemblyProductAttribute("VoiceTranslator.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VoiceTranslator.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

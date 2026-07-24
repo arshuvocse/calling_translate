@@ -82,6 +82,63 @@ END
 """, cancellationToken);
 
         await dbContext.Database.ExecuteSqlRawAsync("""
+IF OBJECT_ID('dbo.tbltrans_Spaces', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbltrans_Spaces (
+        Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_tbltrans_Spaces PRIMARY KEY,
+        Name NVARCHAR(150) NOT NULL,
+        Code NVARCHAR(32) NOT NULL,
+        Category NVARCHAR(50) NOT NULL,
+        CreatedByUserId UNIQUEIDENTIFIER NOT NULL,
+        CreatedAt DATETIMEOFFSET NOT NULL
+    );
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
+IF OBJECT_ID('dbo.tbltrans_SpaceMembers', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbltrans_SpaceMembers (
+        Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_tbltrans_SpaceMembers PRIMARY KEY,
+        SpaceId UNIQUEIDENTIFIER NOT NULL,
+        UserId UNIQUEIDENTIFIER NOT NULL,
+        Role NVARCHAR(32) NOT NULL,
+        JoinedAt DATETIMEOFFSET NOT NULL,
+        CONSTRAINT FK_tbltrans_SpaceMembers_Spaces FOREIGN KEY (SpaceId) REFERENCES dbo.tbltrans_Spaces(Id)
+    );
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
+IF OBJECT_ID('dbo.tbltrans_Rooms', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbltrans_Rooms (
+        Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_tbltrans_Rooms PRIMARY KEY,
+        Name NVARCHAR(150) NOT NULL,
+        RoomType NVARCHAR(32) NOT NULL,
+        Status NVARCHAR(32) NOT NULL,
+        CreatedByUserId UNIQUEIDENTIFIER NOT NULL,
+        CreatedAt DATETIMEOFFSET NOT NULL
+    );
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
+IF OBJECT_ID('dbo.tbltrans_RoomParticipants', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbltrans_RoomParticipants (
+        Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_tbltrans_RoomParticipants PRIMARY KEY,
+        RoomId UNIQUEIDENTIFIER NOT NULL,
+        UserId UNIQUEIDENTIFIER NOT NULL,
+        IsMuted BIT NOT NULL DEFAULT 0,
+        IsSpeaking BIT NOT NULL DEFAULT 0,
+        JoinedAt DATETIMEOFFSET NOT NULL,
+        CONSTRAINT FK_tbltrans_RoomParticipants_Rooms FOREIGN KEY (RoomId) REFERENCES dbo.tbltrans_Rooms(Id)
+    );
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
 CREATE OR ALTER PROCEDURE dbo.sp_trans_GetUsers
 AS
 BEGIN
@@ -89,19 +146,6 @@ BEGIN
     SELECT Id, DisplayName, Email, PreferredSourceLanguage, PreferredTargetLanguage, CreatedAt
     FROM dbo.tbltrans_Users
     ORDER BY DisplayName;
-END
-""", cancellationToken);
-
-        await dbContext.Database.ExecuteSqlRawAsync("""
-CREATE OR ALTER PROCEDURE dbo.sp_trans_GetTranslationLogsByCallSession
-    @CallSessionId UNIQUEIDENTIFIER
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SELECT Id, CallSessionId, SenderUserId, SourceLanguage, TargetLanguage, SourceText, TranslatedText, CreatedAt
-    FROM dbo.tbltrans_TranslationLogs
-    WHERE CallSessionId = @CallSessionId
-    ORDER BY CreatedAt;
 END
 """, cancellationToken);
 

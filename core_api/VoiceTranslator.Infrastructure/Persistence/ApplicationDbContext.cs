@@ -12,6 +12,10 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<CallParticipant> CallParticipants => Set<CallParticipant>();
     public DbSet<TranslationLog> TranslationLogs => Set<TranslationLog>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<Space> Spaces => Set<Space>();
+    public DbSet<SpaceMember> SpaceMembers => Set<SpaceMember>();
+    public DbSet<Room> Rooms => Set<Room>();
+    public DbSet<RoomParticipant> RoomParticipants => Set<RoomParticipant>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,6 +74,37 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
                 .WithMany(x => x.ReceivedChatMessages)
                 .HasForeignKey(x => x.RecipientUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Space>(entity =>
+        {
+            entity.ToTable("tbltrans_Spaces");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Code).HasMaxLength(32).IsRequired();
+            entity.HasIndex(x => x.Code).IsUnique();
+        });
+
+        modelBuilder.Entity<SpaceMember>(entity =>
+        {
+            entity.ToTable("tbltrans_SpaceMembers");
+            entity.HasKey(x => x.Id);
+            entity.HasOne(x => x.Space).WithMany(x => x.Members).HasForeignKey(x => x.SpaceId);
+        });
+
+        modelBuilder.Entity<Room>(entity =>
+        {
+            entity.ToTable("tbltrans_Rooms");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.RoomType).HasMaxLength(32).IsRequired();
+        });
+
+        modelBuilder.Entity<RoomParticipant>(entity =>
+        {
+            entity.ToTable("tbltrans_RoomParticipants");
+            entity.HasKey(x => x.Id);
+            entity.HasOne(x => x.Room).WithMany(x => x.Participants).HasForeignKey(x => x.RoomId);
         });
     }
 }

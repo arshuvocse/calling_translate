@@ -16,11 +16,14 @@ import '../config.dart';
 import '../models.dart';
 
 class CallScreen extends StatefulWidget {
-  const CallScreen.outgoing({super.key, required this.remoteUser})
-    : incomingCallSessionId = null,
-      incomingCallerName = null,
-      incomingSourceLanguage = null,
-      incomingTargetLanguage = null;
+  const CallScreen.outgoing({
+    super.key,
+    required this.remoteUser,
+    this.isVideo = false,
+  })  : incomingCallSessionId = null,
+        incomingCallerName = null,
+        incomingSourceLanguage = null,
+        incomingTargetLanguage = null;
 
   const CallScreen.incoming({
     super.key,
@@ -29,6 +32,7 @@ class CallScreen extends StatefulWidget {
     required this.incomingCallerName,
     required this.incomingSourceLanguage,
     required this.incomingTargetLanguage,
+    this.isVideo = false,
   });
 
   final AppUser remoteUser;
@@ -36,6 +40,7 @@ class CallScreen extends StatefulWidget {
   final String? incomingCallerName;
   final String? incomingSourceLanguage;
   final String? incomingTargetLanguage;
+  final bool isVideo;
 
   bool get isIncoming => incomingCallSessionId != null;
 
@@ -52,6 +57,7 @@ class _CallScreenState extends State<CallScreen> {
   final player = AudioPlayer();
   final recorder = AudioRecorder();
   final audioBuffer = BytesBuilder(copy: false);
+  final localRenderer = RTCVideoRenderer();
   final remoteRenderer = RTCVideoRenderer();
   final audioFeedback = CallAudioFeedback();
 
@@ -67,6 +73,10 @@ class _CallScreenState extends State<CallScreen> {
   var translatedText = '';
   String? callSessionId;
 
+  bool isMuted = false;
+  bool isCameraOn = true;
+  bool isFrontCamera = true;
+
   bool get _live =>
       status == 'ringing' || status == 'connecting' || status == 'live';
 
@@ -80,16 +90,22 @@ class _CallScreenState extends State<CallScreen> {
         widget.incomingTargetLanguage ??
         widget.remoteUser.preferredTargetLanguage;
     callSessionId = widget.incomingCallSessionId;
-    remoteRenderer.initialize();
+    _initRenderers();
     if (widget.isIncoming) {
       status = 'incoming';
     }
+  }
+
+  Future<void> _initRenderers() async {
+    await localRenderer.initialize();
+    await remoteRenderer.initialize();
   }
 
   @override
   void dispose() {
     _closeMedia();
     audioFeedback.dispose();
+    localRenderer.dispose();
     remoteRenderer.dispose();
     recorder.dispose();
     player.dispose();
@@ -101,221 +117,347 @@ class _CallScreenState extends State<CallScreen> {
     final title = widget.isIncoming
         ? (widget.incomingCallerName ?? widget.remoteUser.displayName)
         : widget.remoteUser.displayName;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(title),
+        title: Row(
+          children: [
+            Icon(
+              widget.isVideo ? Icons.videocam : Icons.phone,
+              size: 20,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(title),
+          ],
+        ),
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF123A5C), Color(0xFF0A7C86), Color(0xFFF4F8FB)],
-            stops: [0, 0.48, 1],
-          ),
-        ),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 96, 16, 24),
-          children: [
-            _GlossPanel(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+      body: Stack(
+        children: [
+          // Background / Fullscreen Video for Video Call
+          if (widget.isVideo && status == 'live' && remoteStream != null)
+            Positioned.fill(
+              child: RTCVideoView(
+                remoteRenderer,
+                objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+              ),
+            )
+          else
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF123A5C),
+                    Color(0xFF0A7C86),
+                    Color(0xFFF4F8FB),
+                  ],
+                  stops: [0, 0.48, 1],
+                ),
+              ),
+            ),
+
+          // Main Call Overlay & Content
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                     children: [
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF13B7A8), Color(0xFF276EF1)],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFF13B7A8,
-                              ).withValues(alpha: 0.26),
-                              blurRadius: 16,
+                      _GlossPanel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF13B7A8),
+                                        Color(0xFF276EF1),
+                                      ],
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF13B7A8,
+                                        ).withValues(alpha: 0.26),
+                                        blurRadius: 16,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.graphic_eq,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    widget.isVideo
+                                        ? 'Live Translated Video Call'
+                                        : 'Live Translated Audio Call',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              widget.isVideo
+                                  ? 'WebRTC streams video & audio. SignalR handles signaling and live speech translation.'
+                                  : 'WebRTC carries call audio. SignalR handles signaling and translated AI audio.',
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.graphic_eq,
-                          color: Colors.white,
+                      ),
+                      const SizedBox(height: 16),
+                      _GlossPanel(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _LanguagePicker(
+                                label: 'You speak',
+                                value: sourceLanguage,
+                                onChanged: _live
+                                    ? null
+                                    : (v) => setState(() => sourceLanguage = v),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _LanguagePicker(
+                                label: 'You hear translation',
+                                value: targetLanguage,
+                                onChanged: _live
+                                    ? null
+                                    : (v) => setState(() => targetLanguage = v),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Live translated call',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'WebRTC carries the live call audio. SignalR carries call signaling and translated AI audio.',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _GlossPanel(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _LanguagePicker(
-                      label: 'You speak',
-                      value: sourceLanguage,
-                      onChanged: _live
-                          ? null
-                          : (v) => setState(() => sourceLanguage = v),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _LanguagePicker(
-                      label: 'You hear translation',
-                      value: targetLanguage,
-                      onChanged: _live
-                          ? null
-                          : (v) => setState(() => targetLanguage = v),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Center(
-              child: Container(
-                width: 172,
-                height: 172,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.92),
-                      Colors.white.withValues(alpha: 0.58),
-                    ],
-                  ),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.82),
-                    width: 1.4,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.18),
-                      blurRadius: 28,
-                      offset: const Offset(0, 16),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      _live ? Icons.graphic_eq : Icons.call,
-                      size: 64,
-                      color: _live
-                          ? const Color(0xFF008D7F)
-                          : const Color(0xFF506272),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      status,
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            color: const Color(0xFF153246),
-                            fontWeight: FontWeight.w700,
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Container(
+                          width: 160,
+                          height: 160,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.92),
+                                Colors.white.withValues(alpha: 0.58),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.82),
+                              width: 1.4,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.18),
+                                blurRadius: 28,
+                                offset: const Offset(0, 16),
+                              ),
+                            ],
                           ),
-                    ),
-                  ],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _live
+                                    ? (widget.isVideo
+                                        ? Icons.videocam
+                                        : Icons.graphic_eq)
+                                    : Icons.call,
+                                size: 56,
+                                color: _live
+                                    ? const Color(0xFF008D7F)
+                                    : const Color(0xFF506272),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                status.toUpperCase(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: const Color(0xFF153246),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _GlossPanel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Translated text from remote speaker',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              constraints: const BoxConstraints(minHeight: 70),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7FBFC),
+                                border: Border.all(
+                                  color: const Color(0xFFDDE9EC),
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                translatedText.isEmpty
+                                    ? 'Waiting for translated speech...'
+                                    : translatedText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            _GlossPanel(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Translated text from remote speaker',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+
+                // Local Camera Floating Preview Tile (PIP) for Video Calls
+                if (widget.isVideo && localStream != null && isCameraOn)
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      width: 110,
+                      height: 150,
+                      margin: const EdgeInsets.only(right: 16, bottom: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black26, blurRadius: 10),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: RTCVideoView(
+                          localRenderer,
+                          mirror: isFrontCamera,
+                          objectFit:
+                              RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Container(
-                    constraints: const BoxConstraints(minHeight: 80),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF7FBFC),
-                      border: Border.all(color: const Color(0xFFDDE9EC)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      translatedText.isEmpty
-                          ? 'Waiting for translated speech...'
-                          : translatedText,
+
+                // Bottom Call Controls Bar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
                     ),
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      // Mute Microphone Button
+                      if (_live)
+                        IconButton.filled(
+                          onPressed: _toggleMute,
+                          icon: Icon(isMuted ? Icons.mic_off : Icons.mic),
+                          style: IconButton.styleFrom(
+                            backgroundColor: isMuted
+                                ? Colors.redAccent
+                                : Colors.white24,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+
+                      // Video Camera On/Off Toggle
+                      if (_live && widget.isVideo)
+                        IconButton.filled(
+                          onPressed: _toggleCamera,
+                          icon: Icon(
+                            isCameraOn ? Icons.videocam : Icons.videocam_off,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: isCameraOn
+                                ? Colors.white24
+                                : Colors.redAccent,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+
+                      // Switch Camera Front/Rear Toggle
+                      if (_live && widget.isVideo)
+                        IconButton.filled(
+                          onPressed: _switchCamera,
+                          icon: const Icon(Icons.cameraswitch),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.white24,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+
+                      // Call Main Action Button (Start / Accept / End)
+                      if (widget.isIncoming && status == 'incoming') ...[
+                        FloatingActionButton.extended(
+                          heroTag: 'acceptCall',
+                          onPressed: () => _runCallAction(_acceptIncomingCall),
+                          icon: const Icon(Icons.call),
+                          label: const Text('Accept'),
+                          backgroundColor: const Color(0xFF0C766F),
+                        ),
+                        FloatingActionButton.extended(
+                          heroTag: 'rejectCall',
+                          onPressed: () => _runCallAction(_rejectIncomingCall),
+                          icon: const Icon(Icons.call_end),
+                          label: const Text('Reject'),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      ] else ...[
+                        FloatingActionButton(
+                          heroTag: 'callAction',
+                          onPressed: _live
+                              ? () => _runCallAction(_endCall)
+                              : () => _runCallAction(_startOutgoingCall),
+                          backgroundColor: _live
+                              ? const Color(0xFFE94747)
+                              : const Color(0xFF0C766F),
+                          child: Icon(_live ? Icons.call_end : Icons.call),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            if (widget.isIncoming && status == 'incoming') ...[
-              FilledButton.icon(
-                onPressed: () => _runCallAction(_acceptIncomingCall),
-                icon: const Icon(Icons.call),
-                label: const Text('Accept call'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  backgroundColor: const Color(0xFF0C766F),
-                  foregroundColor: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () => _runCallAction(_rejectIncomingCall),
-                icon: const Icon(Icons.call_end),
-                label: const Text('Reject'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white),
-                ),
-              ),
-            ] else
-              FilledButton.icon(
-                onPressed: _live
-                    ? () => _runCallAction(_endCall)
-                    : () => _runCallAction(_startOutgoingCall),
-                icon: Icon(_live ? Icons.call_end : Icons.call),
-                label: Text(_live ? 'End call' : 'Start call'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  backgroundColor: _live
-                      ? const Color(0xFFE94747)
-                      : const Color(0xFF0C766F),
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            SizedBox(
-              width: 1,
-              height: 1,
-              child: Opacity(opacity: 0, child: RTCVideoView(remoteRenderer)),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -466,14 +608,35 @@ class _CallScreenState extends State<CallScreen> {
     final mic = await Permission.microphone.request();
     if (!mic.isGranted) throw Exception('Microphone permission is required.');
 
-    localStream = await navigator.mediaDevices.getUserMedia({
+    if (widget.isVideo) {
+      final cam = await Permission.camera.request();
+      if (!cam.isGranted) throw Exception('Camera permission is required.');
+    }
+
+    final mediaConstraints = {
       'audio': {'echoCancellation': true, 'noiseSuppression': true},
-      'video': false,
-    });
+      'video': widget.isVideo
+          ? {
+              'facingMode': isFrontCamera ? 'user' : 'environment',
+              'mandatory': {
+                'minWidth': '640',
+                'minHeight': '480',
+                'minFrameRate': '30',
+              },
+            }
+          : false,
+    };
+
+    localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+    if (widget.isVideo) {
+      localRenderer.srcObject = localStream;
+    }
 
     final peer = await createPeerConnection({
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'},
+        {'urls': 'stun:stun1.l.google.com:19302'},
+        {'urls': 'stun:stun2.l.google.com:19302'},
       ],
     });
 
@@ -493,17 +656,15 @@ class _CallScreenState extends State<CallScreen> {
       );
     };
 
-    peer.onTrack = (event) async {
-      remoteStream ??= await createLocalMediaStream('remote-audio');
-      for (final track in event.streams.expand(
-        (stream) => stream.getTracks(),
-      )) {
-        await remoteStream!.addTrack(track);
+    peer.onTrack = (event) {
+      if (event.streams.isNotEmpty) {
+        remoteStream = event.streams[0];
+        remoteRenderer.srcObject = remoteStream;
+        if (mounted) setState(() {});
       }
-      remoteRenderer.srcObject = remoteStream;
     };
 
-    for (final track in localStream!.getAudioTracks()) {
+    for (final track in localStream!.getTracks()) {
       await peer.addTrack(track, localStream!);
     }
 
@@ -511,7 +672,11 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Future<void> _sendOffer() async {
-    final offer = await peerConnection!.createOffer({'offerToReceiveAudio': 1});
+    final offerConstraints = {
+      'offerToReceiveAudio': 1,
+      'offerToReceiveVideo': widget.isVideo ? 1 : 0,
+    };
+    final offer = await peerConnection!.createOffer(offerConstraints);
     await peerConnection!.setLocalDescription(offer);
     await hub!.invoke(
       'SendOffer',
@@ -528,9 +693,11 @@ class _CallScreenState extends State<CallScreen> {
         _stringValue(map, 'type'),
       ),
     );
-    final answer = await peerConnection!.createAnswer({
+    final answerConstraints = {
       'offerToReceiveAudio': 1,
-    });
+      'offerToReceiveVideo': widget.isVideo ? 1 : 0,
+    };
+    final answer = await peerConnection!.createAnswer(answerConstraints);
     await peerConnection!.setLocalDescription(answer);
     await hub!.invoke(
       'SendAnswer',
@@ -546,34 +713,41 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Future<void> _startAudioStream(String userId) async {
-    final stream = await recorder.startStream(
-      const RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
-        sampleRate: _sampleRate,
-        numChannels: _channels,
-        echoCancel: true,
-        noiseSuppress: true,
-        streamBufferSize: 4096,
-      ),
-    );
+    try {
+      final stream = await recorder.startStream(
+        const RecordConfig(
+          encoder: AudioEncoder.pcm16bits,
+          sampleRate: _sampleRate,
+          numChannels: _channels,
+          echoCancel: true,
+          noiseSuppress: true,
+          streamBufferSize: 4096,
+        ),
+      );
 
-    audioSubscription = stream.listen((bytes) {
-      audioBuffer.add(bytes);
-      final targetSize =
-          (_sampleRate *
-                  _channels *
-                  _bytesPerSample *
-                  _chunkMilliseconds /
-                  1000)
-              .round();
-      while (audioBuffer.length >= targetSize) {
-        final allBytes = audioBuffer.takeBytes();
-        _sendAudioChunk(userId, Uint8List.sublistView(allBytes, 0, targetSize));
-        if (allBytes.length > targetSize) {
-          audioBuffer.add(Uint8List.sublistView(allBytes, targetSize));
+      audioSubscription = stream.listen((bytes) {
+        audioBuffer.add(bytes);
+        final targetSize =
+            (_sampleRate *
+                    _channels *
+                    _bytesPerSample *
+                    _chunkMilliseconds /
+                    1000)
+                .round();
+        while (audioBuffer.length >= targetSize) {
+          final allBytes = audioBuffer.takeBytes();
+          _sendAudioChunk(
+            userId,
+            Uint8List.sublistView(allBytes, 0, targetSize),
+          );
+          if (allBytes.length > targetSize) {
+            audioBuffer.add(Uint8List.sublistView(allBytes, targetSize));
+          }
         }
-      }
-    });
+      });
+    } catch (e) {
+      debugPrint('Audio translation recorder stream notice: $e');
+    }
   }
 
   void _sendAudioChunk(String userId, Uint8List chunk) {
@@ -594,6 +768,33 @@ class _CallScreenState extends State<CallScreen> {
     );
   }
 
+  void _toggleMute() {
+    if (localStream == null) return;
+    final newMuteState = !isMuted;
+    for (final track in localStream!.getAudioTracks()) {
+      track.enabled = !newMuteState;
+    }
+    setState(() => isMuted = newMuteState);
+  }
+
+  void _toggleCamera() {
+    if (localStream == null || !widget.isVideo) return;
+    final newCamState = !isCameraOn;
+    for (final track in localStream!.getVideoTracks()) {
+      track.enabled = newCamState;
+    }
+    setState(() => isCameraOn = newCamState);
+  }
+
+  Future<void> _switchCamera() async {
+    if (localStream == null || !widget.isVideo) return;
+    final videoTracks = localStream!.getVideoTracks();
+    if (videoTracks.isNotEmpty) {
+      await Helper.switchCamera(videoTracks.first);
+      setState(() => isFrontCamera = !isFrontCamera);
+    }
+  }
+
   Future<void> _endCall() async {
     final id = callSessionId;
     if (id != null) {
@@ -607,9 +808,11 @@ class _CallScreenState extends State<CallScreen> {
     await audioSubscription?.cancel();
     audioSubscription = null;
     audioBuffer.clear();
-    if (await recorder.isRecording()) {
-      await recorder.stop();
-    }
+    try {
+      if (await recorder.isRecording()) {
+        await recorder.stop();
+      }
+    } catch (_) {}
     localStream?.getTracks().forEach((track) => track.stop());
     remoteStream?.getTracks().forEach((track) => track.stop());
     await peerConnection?.close();

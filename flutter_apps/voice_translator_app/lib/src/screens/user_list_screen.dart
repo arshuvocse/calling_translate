@@ -290,10 +290,19 @@ class _UserTile extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.call),
-            tooltip: 'Start call',
+            tooltip: 'Audio Call',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => CallScreen.outgoing(remoteUser: user),
+                builder: (_) => CallScreen.outgoing(remoteUser: user, isVideo: false),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam),
+            tooltip: 'Video Call',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => CallScreen.outgoing(remoteUser: user, isVideo: true),
               ),
             ),
           ),

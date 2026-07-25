@@ -140,7 +140,7 @@ class _OrbitalWheelWidgetState extends State<OrbitalWheelWidget>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withValues(alpha: 0.4),
                   blurRadius: 8,
                 ),
               ],

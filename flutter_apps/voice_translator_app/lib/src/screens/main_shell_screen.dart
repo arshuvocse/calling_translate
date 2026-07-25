@@ -57,7 +57,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
           gradient: AppTheme.purpleGradient,
           boxShadow: [
             BoxShadow(
-              color: AppTheme.cosmicAccentPurple.withOpacity(0.5),
+              color: AppTheme.cosmicAccentPurple.withValues(alpha: 0.5),
               blurRadius: 16,
               spreadRadius: 2,
             ),
@@ -149,7 +149,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
           onStartCall: (remoteUser, isVideo) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => CallScreen.outgoing(remoteUser: remoteUser),
+                builder: (_) => CallScreen.outgoing(
+                  remoteUser: remoteUser,
+                  isVideo: isVideo,
+                ),
               ),
             );
           },
@@ -176,7 +179,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: const Color(0xFF6366F1).withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: const Color(0xFF6366F1).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                   child: const Icon(Icons.chat_bubble_outline, color: Color(0xFF6366F1)),
                 ),
                 title: const Text('Start Direct Message', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -188,7 +191,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                   child: const Icon(Icons.graphic_eq, color: Color(0xFF10B981)),
                 ),
                 title: const Text('Create Voice Room', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -200,7 +203,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: const Color(0xFFF59E0B).withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: const Color(0xFFF59E0B).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                   child: const Icon(Icons.videocam_outlined, color: Color(0xFFF59E0B)),
                 ),
                 title: const Text('Create Video Room', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

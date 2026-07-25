@@ -139,6 +139,27 @@ END
 """, cancellationToken);
 
         await dbContext.Database.ExecuteSqlRawAsync("""
+IF OBJECT_ID('dbo.tbltrans_ChatMessages', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbltrans_ChatMessages (
+        Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_tbltrans_ChatMessages PRIMARY KEY,
+        SenderUserId UNIQUEIDENTIFIER NOT NULL,
+        RecipientUserId UNIQUEIDENTIFIER NOT NULL,
+        Message NVARCHAR(4000) NOT NULL,
+        CreatedAt DATETIMEOFFSET NOT NULL,
+        CONSTRAINT FK_tbltrans_ChatMessages_Sender FOREIGN KEY (SenderUserId) REFERENCES dbo.tbltrans_Users(Id),
+        CONSTRAINT FK_tbltrans_ChatMessages_Recipient FOREIGN KEY (RecipientUserId) REFERENCES dbo.tbltrans_Users(Id)
+    );
+
+    CREATE INDEX IX_tbltrans_ChatMessages_Sender_Recipient_CreatedAt
+    ON dbo.tbltrans_ChatMessages (SenderUserId, RecipientUserId, CreatedAt);
+
+    CREATE INDEX IX_tbltrans_ChatMessages_Recipient_Sender_CreatedAt
+    ON dbo.tbltrans_ChatMessages (RecipientUserId, SenderUserId, CreatedAt);
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
 CREATE OR ALTER PROCEDURE dbo.sp_trans_GetUsers
 AS
 BEGIN

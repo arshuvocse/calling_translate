@@ -222,7 +222,7 @@ class _ChatScreenState extends State<ChatScreen> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.purple.withOpacity(0.1),
+              color: Colors.purple.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.chat_bubble_outline, color: Color(0xFF6366F1), size: 32),
@@ -257,7 +257,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -314,9 +314,11 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(height: 20),
               GridView.count(
                 shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 4,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.80,
                 children: [
                   _buildDrawerItem(Icons.image_outlined, 'Photo', const Color(0xFF10B981)),
                   _buildDrawerItem(Icons.videocam_outlined, 'Video', const Color(0xFFEF4444)),
@@ -347,18 +349,21 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: 22),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.signalTextPrimary),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.signalTextPrimary),
             ),
           ],
         ),

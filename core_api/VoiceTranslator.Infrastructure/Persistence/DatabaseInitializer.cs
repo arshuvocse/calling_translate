@@ -160,6 +160,40 @@ END
 """, cancellationToken);
 
         await dbContext.Database.ExecuteSqlRawAsync("""
+IF OBJECT_ID('dbo.tbltrans_VideoItems', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbltrans_VideoItems (
+        Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_tbltrans_VideoItems PRIMARY KEY,
+        AuthorId UNIQUEIDENTIFIER NOT NULL,
+        Title NVARCHAR(250) NOT NULL,
+        Description NVARCHAR(MAX) NULL,
+        VideoType NVARCHAR(32) NOT NULL,
+        Category NVARCHAR(64) NOT NULL,
+        VideoUrl NVARCHAR(MAX) NOT NULL,
+        ThumbnailUrl NVARCHAR(MAX) NOT NULL,
+        Duration NVARCHAR(20) NOT NULL,
+        ViewsCount BIGINT NOT NULL DEFAULT 0,
+        LikesCount BIGINT NOT NULL DEFAULT 0,
+        CreatedAt DATETIMEOFFSET NOT NULL
+    );
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
+IF OBJECT_ID('dbo.tbltrans_VideoComments', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbltrans_VideoComments (
+        Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_tbltrans_VideoComments PRIMARY KEY,
+        VideoId UNIQUEIDENTIFIER NOT NULL,
+        UserId UNIQUEIDENTIFIER NOT NULL,
+        CommentText NVARCHAR(1000) NOT NULL,
+        CreatedAt DATETIMEOFFSET NOT NULL,
+        CONSTRAINT FK_tbltrans_VideoComments_VideoItems FOREIGN KEY (VideoId) REFERENCES dbo.tbltrans_VideoItems(Id)
+    );
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
 CREATE OR ALTER PROCEDURE dbo.sp_trans_GetUsers
 AS
 BEGIN
@@ -167,6 +201,68 @@ BEGIN
     SELECT Id, DisplayName, Email, PreferredSourceLanguage, PreferredTargetLanguage, CreatedAt
     FROM dbo.tbltrans_Users
     ORDER BY DisplayName;
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
+CREATE OR ALTER PROCEDURE dbo.sp_trans_GetVideos
+    @VideoType NVARCHAR(32) = NULL,
+    @Category NVARCHAR(64) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        v.Id, 
+        v.AuthorId, 
+        v.Title, 
+        v.Description, 
+        v.VideoType, 
+        v.Category, 
+        v.VideoUrl, 
+        v.ThumbnailUrl, 
+        v.Duration, 
+        v.ViewsCount, 
+        v.LikesCount, 
+        v.CreatedAt,
+        ISNULL(u.DisplayName, 'Travel With Shuvo') AS AuthorName
+    FROM dbo.tbltrans_VideoItems v
+    LEFT JOIN dbo.tbltrans_Users u ON v.AuthorId = u.Id
+    WHERE (@VideoType IS NULL OR LOWER(v.VideoType) = LOWER(@VideoType))
+      AND (@Category IS NULL OR LOWER(v.Category) = LOWER(@Category))
+    ORDER BY v.CreatedAt DESC;
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
+CREATE OR ALTER PROCEDURE dbo.sp_trans_CreateVideo
+    @Id UNIQUEIDENTIFIER,
+    @AuthorId UNIQUEIDENTIFIER,
+    @Title NVARCHAR(250),
+    @Description NVARCHAR(MAX) = NULL,
+    @VideoType NVARCHAR(32),
+    @Category NVARCHAR(64),
+    @VideoUrl NVARCHAR(MAX),
+    @ThumbnailUrl NVARCHAR(MAX),
+    @Duration NVARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO dbo.tbltrans_VideoItems (Id, AuthorId, Title, Description, VideoType, Category, VideoUrl, ThumbnailUrl, Duration, ViewsCount, LikesCount, CreatedAt)
+    VALUES (@Id, @AuthorId, @Title, @Description, @VideoType, @Category, @VideoUrl, @ThumbnailUrl, @Duration, 0, 0, SYSDATETIMEOFFSET());
+END
+""", cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync("""
+CREATE OR ALTER PROCEDURE dbo.sp_trans_LikeVideo
+    @Id UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE dbo.tbltrans_VideoItems
+    SET LikesCount = LikesCount + 1
+    WHERE Id = @Id;
+
+    SELECT Id, LikesCount FROM dbo.tbltrans_VideoItems WHERE Id = @Id;
 END
 """, cancellationToken);
 

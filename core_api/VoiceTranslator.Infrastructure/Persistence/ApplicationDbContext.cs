@@ -16,6 +16,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<SpaceMember> SpaceMembers => Set<SpaceMember>();
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<RoomParticipant> RoomParticipants => Set<RoomParticipant>();
+    public DbSet<VideoItem> VideoItems => Set<VideoItem>();
+    public DbSet<VideoComment> VideoComments => Set<VideoComment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -105,6 +107,25 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             entity.ToTable("tbltrans_RoomParticipants");
             entity.HasKey(x => x.Id);
             entity.HasOne(x => x.Room).WithMany(x => x.Participants).HasForeignKey(x => x.RoomId);
+        });
+
+        modelBuilder.Entity<VideoItem>(entity =>
+        {
+            entity.ToTable("tbltrans_VideoItems");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Title).HasMaxLength(250).IsRequired();
+            entity.Property(x => x.VideoType).HasMaxLength(32).IsRequired();
+            entity.Property(x => x.Category).HasMaxLength(64).IsRequired();
+            entity.HasOne(x => x.Author).WithMany().HasForeignKey(x => x.AuthorId);
+        });
+
+        modelBuilder.Entity<VideoComment>(entity =>
+        {
+            entity.ToTable("tbltrans_VideoComments");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.CommentText).HasMaxLength(1000).IsRequired();
+            entity.HasOne(x => x.Video).WithMany(x => x.Comments).HasForeignKey(x => x.VideoId);
+            entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
         });
     }
 }

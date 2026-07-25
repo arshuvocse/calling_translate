@@ -129,11 +129,14 @@ public sealed class CallHub(IApplicationDbContext dbContext, LiveTranslationProc
 
     public async Task<ChatMessageDto> SendChatMessage(SendChatMessageRequest request)
     {
+        if (request is null)
+            throw new HubException("Invalid chat message payload.");
+
         var senderUserId = CurrentUserId();
         if (request.RecipientUserId == Guid.Empty || senderUserId == request.RecipientUserId)
             throw new HubException("A different recipient user is required.");
 
-        var text = request.Message.Trim();
+        var text = request.Message?.Trim() ?? string.Empty;
         if (text.Length == 0)
             throw new HubException("Message is required.");
         if (text.Length > 4000)

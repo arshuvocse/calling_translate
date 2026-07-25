@@ -85,6 +85,46 @@ class ApiClient {
     );
   }
 
+  Future<List<Map<String, dynamic>>> fetchVideos({String? type, String? category}) async {
+    try {
+      final uri = Uri.parse('${AppConfig.baseUrl}/api/videos').replace(
+        queryParameters: {
+          if (type != null && type.isNotEmpty) 'type': type,
+          if (category != null && category.isNotEmpty) 'category': category,
+        },
+      );
+      final response = await http.get(uri);
+      if (response.statusCode < 400) {
+        final list = jsonDecode(response.body) as List<dynamic>;
+        return list.map((x) => Map<String, dynamic>.from(x as Map)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<bool> createVideo({
+    required String title,
+    required String description,
+    required String videoType,
+    required String category,
+  }) async {
+    try {
+      final response = await http.post(
+        AppConfig.api('/api/videos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'title': title,
+          'description': description,
+          'videoType': videoType,
+          'category': category,
+        }),
+      );
+      return response.statusCode < 400;
+    } catch (_) {
+      return false;
+    }
+  }
+
   AuthUser _decodeAuth(http.Response response) {
     if (response.statusCode >= 400) throw Exception(response.body);
     return AuthUser.fromJson(jsonDecode(response.body));

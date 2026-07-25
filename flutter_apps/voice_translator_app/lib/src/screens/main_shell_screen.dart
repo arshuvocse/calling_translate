@@ -9,6 +9,7 @@ import 'space_details_screen.dart';
 import 'user_list_screen.dart';
 import 'voice_room_screen.dart';
 import 'video_room_screen.dart';
+import 'video_feed_screen.dart';
 import 'call_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
@@ -38,11 +39,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
           SignalChatListScreen(
             onSelectUser: (targetUser) => _openChat(context, targetUser),
           ),
-          // Tab 2: Orbit / Spaces
+          // Tab 2: Videos Hub
+          const VideoFeedScreen(),
+          // Tab 3: Orbit / Spaces
           SpaceDetailsScreen(
             onNavigate: (route) => _handleNavigation(context, route),
           ),
-          // Tab 3: Profile / Users List
+          // Tab 4: Profile / Users List
           const UserListScreen(),
         ],
       ),
@@ -76,15 +79,16 @@ class _MainShellScreenState extends State<MainShellScreen> {
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, Icons.auto_awesome_outlined, 'Galaxy', isDarkTab),
               _buildNavItem(1, Icons.chat_bubble_outline, 'Signal', isDarkTab),
-              const SizedBox(width: 48), // Space for central FAB
-              _buildNavItem(2, Icons.hub_outlined, 'Orbit', isDarkTab),
-              _buildNavItem(3, Icons.person_outline, 'Profile', isDarkTab),
+              _buildNavItem(2, Icons.ondemand_video, 'Videos', isDarkTab),
+              const SizedBox(width: 44), // Space for central FAB
+              _buildNavItem(3, Icons.hub_outlined, 'Orbit', isDarkTab),
+              _buildNavItem(4, Icons.person_outline, 'Profile', isDarkTab),
             ],
           ),
         ),
@@ -203,13 +207,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: const Color(0xFFF59E0B).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.videocam_outlined, color: Color(0xFFF59E0B)),
+                  decoration: BoxDecoration(color: const Color(0xFFD946EF).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+                  child: const Icon(Icons.video_call_outlined, color: Color(0xFFD946EF)),
                 ),
-                title: const Text('Create Video Room', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                title: const Text('Post / Upload Video', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.of(context).pop();
-                  _handleNavigation(context, 'video_room');
+                  setState(() => _currentIndex = 2);
                 },
               ),
             ],

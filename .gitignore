@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+.vscode/
+**/publish/
+core_api/publish/
+core_api/publish.zip
+*.dll
+*.pdb
+*.exe

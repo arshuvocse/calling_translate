@@ -14,5 +14,7 @@ public interface IApplicationDbContext
     DbSet<SpaceMember> SpaceMembers { get; }
     DbSet<Room> Rooms { get; }
     DbSet<RoomParticipant> RoomParticipants { get; }
+    DbSet<VideoItem> VideoItems { get; }
+    DbSet<VideoComment> VideoComments { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
